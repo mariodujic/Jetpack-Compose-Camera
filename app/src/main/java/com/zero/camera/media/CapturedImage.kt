@@ -20,7 +20,7 @@ import compose.icons.feathericons.XCircle
 @Composable
 fun CapturedImage(
     imageUri: Uri,
-    saveImage: () -> Unit,
+    storeImage: () -> Unit,
     resetImage: () -> Unit
 ) {
     Box {
@@ -47,7 +47,7 @@ fun CapturedImage(
             }
             Spacer(modifier = Modifier.width(22.dp))
             IconButton(
-                onClick = saveImage
+                onClick = storeImage
             ) {
                 Icon(
                     imageVector = FeatherIcons.Save,

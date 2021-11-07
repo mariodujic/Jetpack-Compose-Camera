@@ -1,5 +1,6 @@
 package com.zero.camera
 
+import android.Manifest
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +14,8 @@ import com.zero.camera.media.Camera
 import com.zero.camera.media.CapturedImage
 import com.zero.camera.media.EMPTY_IMAGE_URI
 import com.zero.camera.media.ImageGallery
+import com.zero.camera.permission.Permission
+import com.zero.camera.storage.Storage
 import com.zero.camera.ui.theme.Blue400
 import com.zero.camera.ui.theme.Blue500
 import com.zero.camera.ui.theme.CameraTheme
@@ -22,11 +25,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CameraTheme {
-                Box(
-                    modifier = Modifier.background(
-                        brush = Brush.horizontalGradient(colors = listOf(Blue400, Blue500))
-                    )
-                ) { MainContent() }
+                Permission(permission = Manifest.permission.WRITE_EXTERNAL_STORAGE) {
+                    Box(
+                        modifier = Modifier.background(
+                            brush = Brush.horizontalGradient(colors = listOf(Blue400, Blue500))
+                        )
+                    ) { MainContent() }
+                }
             }
         }
     }
@@ -38,7 +43,7 @@ fun MainContent() {
     if (imageUri != EMPTY_IMAGE_URI) {
         CapturedImage(
             imageUri = imageUri,
-            saveImage = {},
+            storeImage = { Storage.storeToExternalDirectory("test_image.jpg", imageUri) },
             resetImage = { imageUri = EMPTY_IMAGE_URI }
         )
     } else {
