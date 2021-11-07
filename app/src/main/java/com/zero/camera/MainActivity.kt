@@ -8,23 +8,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.zero.camera.media.Camera
 import com.zero.camera.media.CapturedImage
-import com.zero.camera.media.EMPTY_IMAGE_URI
 import com.zero.camera.media.ImageGallery
+import com.zero.camera.media.rememberCapturedImageState
 import com.zero.camera.permission.Permission
 import com.zero.camera.storage.Storage
 import com.zero.camera.ui.Blue400
 import com.zero.camera.ui.Blue500
 import com.zero.camera.ui.CameraTheme
 import com.zero.camera.ui.SlideTopToBottomAnimation
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,35 +43,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainContent() {
 
-    var hasCapturedImage by rememberSaveable { mutableStateOf(false) }
-    var imageUri by rememberSaveable { mutableStateOf(EMPTY_IMAGE_URI) }
-    val coroutineScope = rememberCoroutineScope()
-
-    fun removeCapturedImage() {
-        hasCapturedImage = false
-        coroutineScope.launch {
-            delay(300)
-            imageUri = EMPTY_IMAGE_URI
-        }
-    }
-
+    val capturedState = rememberCapturedImageState()
     var showGallerySelect by remember { mutableStateOf(false) }
 
     if (showGallerySelect) {
         ImageGallery(
             onImageUri = { uri ->
                 showGallerySelect = false
-                imageUri = uri
+                // Do something with selected Uri.
             }
         )
     } else {
         ConstraintLayout {
             val (camera, capturedImage) = createRefs()
             Camera(
-                setUri = {
-                    hasCapturedImage = true
-                    imageUri = it
-                },
+                setUri = { capturedState.setCapturedImage(it) },
                 showGallery = { showGallerySelect = true },
                 modifier = Modifier
                     .constrainAs(camera) {
@@ -84,14 +67,17 @@ fun MainContent() {
                         start.linkTo(anchor = parent.start)
                     }
             )
-            SlideTopToBottomAnimation(animate = hasCapturedImage) {
+            SlideTopToBottomAnimation(animate = capturedState.hasImage) {
                 CapturedImage(
-                    imageUri = imageUri,
+                    imageUri = capturedState.imageUri,
                     storeImage = {
-                        Storage.storeToExternalDirectory("test_image.jpg", imageUri)
-                        removeCapturedImage()
+                        Storage.storeToExternalDirectory(
+                            fileName = "test_image.jpg",
+                            uri = capturedState.imageUri
+                        )
+                        capturedState.removeCapturedImage()
                     },
-                    resetImage = { removeCapturedImage() },
+                    resetImage = { capturedState.removeCapturedImage() },
                     modifier = Modifier
                         .padding(8.dp)
                         .constrainAs(capturedImage) {
