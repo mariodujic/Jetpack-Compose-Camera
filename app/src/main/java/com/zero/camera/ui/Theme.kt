@@ -1,4 +1,4 @@
-package com.zero.camera.ui.theme
+package com.zero.camera.ui
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
